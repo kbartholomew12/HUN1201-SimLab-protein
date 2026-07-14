@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protein Builder SimLab</title>
+<style>
+  :root{
+    --olive:#4f5f39;
+    --olive-dark:#334025;
+    --sage:#dfe7d4;
+    --terracotta:#a64f37;
+    --terracotta-dark:#7d3827;
+    --sand:#ead7b7;
+    --cream:#fbf7ef;
+    --paper:#fffdf8;
+    --charcoal:#2f2b27;
+    --muted:#625a52;
+    --gold:#b47a16;
+    --blue:#315d68;
+    --danger:#9d2f2f;
+    --border:#c9bba7;
+    --shadow:0 8px 24px rgba(57,45,31,.12);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    color:var(--charcoal);
+    background:linear-gradient(180deg,#f7f1e6 0%,#efe4d3 100%);
+    line-height:1.55;
+  }
+
+  button,input,textarea{font:inherit}
+  button{cursor:pointer}
+  button:focus-visible,input:focus-visible,textarea:focus-visible{
+    outline:4px solid #1f6ea8;
+    outline-offset:3px;
+  }
+
+  header{
+    background:var(--olive-dark);
+    color:#fff;
+    border-bottom:6px solid var(--terracotta);
+  }
+  header .wrap{
+    max-width:1180px;
+    margin:auto;
+    padding:1rem 1.25rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+  }
+  .brand{display:flex;align-items:center;gap:.9rem}
+  .brand-mark{
+    width:52px;height:52px;border-radius:50%;
+    display:grid;place-items:center;
+    background:var(--sand);color:var(--olive-dark);
+    font-weight:900;letter-spacing:.04em;
+    border:3px solid #fff;
+  }
+  .brand h1{font-size:1.25rem;margin:0}
+  .brand div:last-child div{font-size:.95rem;color:#f5ead8}
+  #simIdHeader{font-weight:700;font-size:.9rem;text-align:right}
+
+  .container{max-width:1180px;margin:0 auto;padding:1.25rem}
+  .screen{display:none}
+  .screen.active{display:block}
+
+  .panel{
+    background:var(--paper);
+    border:1px solid var(--border);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    padding:1.25rem;
+    margin-bottom:1.1rem;
+  }
+  h2,h3{line-height:1.2;color:var(--olive-dark)}
+  h2{font-size:clamp(1.65rem,3vw,2.35rem);margin-top:0}
+  h3{font-size:1.25rem}
+  p{max-width:78ch}
+
+  .hero{
+    display:grid;
+    grid-template-columns:1.35fr .65fr;
+    gap:1.25rem;
+    align-items:center;
+    min-height:310px;
+  }
+  .hero-art{
+    min-height:250px;
+    background:linear-gradient(145deg,var(--sage),#f1e6d3);
+    border:1px solid var(--border);
+    border-radius:18px;
+    position:relative;
+    overflow:hidden;
+    display:grid;
+    place-items:center;
+  }
+  .protein-chain{position:relative;width:270px;height:180px}
+  .aa-dot{
+    position:absolute;width:48px;height:48px;border-radius:50%;
+    display:grid;place-items:center;font-weight:800;
+    background:var(--terracotta);color:#fff;
+    border:4px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.18)
+  }
+  .aa-dot:nth-child(1){left:8px;top:60px}
+  .aa-dot:nth-child(2){left:58px;top:22px;background:var(--olive)}
+  .aa-dot:nth-child(3){left:112px;top:76px;background:var(--blue)}
+  .aa-dot:nth-child(4){left:166px;top:28px;background:var(--gold)}
+  .aa-dot:nth-child(5){left:216px;top:82px;background:var(--terracotta-dark)}
+  .chain-line{position:absolute;height:8px;background:#6c5946;border-radius:8px;transform-origin:left center}
+  .chain-line.l1{left:45px;top:79px;width:65px;transform:rotate(-35deg)}
+  .chain-line.l2{left:91px;top:51px;width:74px;transform:rotate(42deg)}
+  .chain-line.l3{left:146px;top:93px;width:74px;transform:rotate(-42deg)}
+  .chain-line.l4{left:199px;top:55px;width:72px;transform:rotate(39deg)}
+  .hero-caption{position:absolute;bottom:14px;left:14px;right:14px;text-align:center;font-weight:800;color:var(--olive-dark)}
+
+  .notice{
+    background:#f6efe4;
+    border-left:6px solid var(--gold);
+    padding:.9rem 1rem;
+    border-radius:10px;
+    margin:.9rem 0;
+  }
+  .small{font-size:.9rem;color:var(--muted)}
+  .label{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.045em;color:var(--muted);font-weight:800}
+  .value{display:block;font-weight:800;margin-top:.18rem}
+
+  .criteria-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:.8rem;
+    margin-top:1rem;
+  }
+  .criteria-card{
+    background:var(--cream);
+    border:1px solid var(--border);
+    border-radius:13px;
+    padding:1rem;
+  }
+  .criteria-card h3{margin:.1rem 0 .55rem}
+
+  .button-row{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1rem}
+  .btn-primary,.btn-secondary,.btn-light{
+    border-radius:10px;
+    padding:.72rem 1rem;
+    font-weight:800;
+    border:2px solid transparent;
+  }
+  .btn-primary{background:var(--terracotta);color:#fff}
+  .btn-primary:hover{background:var(--terracotta-dark)}
+  .btn-secondary{background:var(--olive);color:#fff}
+  .btn-secondary:hover{background:var(--olive-dark)}
+  .btn-light{background:#fff;color:var(--olive-dark);border-color:var(--olive)}
+  .btn-light:hover{background:var(--sage)}
+  .btn-disabled{opacity:.55;cursor:not-allowed}
+
+  .profile-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:.8rem;
+  }
+  .profile-item{
+    background:var(--cream);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:.9rem;
+  }
+  .calculation{
+    margin-top:1rem;
+    border:2px dashed var(--olive);
+    border-radius:12px;
+    background:#f2f6ed;
+    padding:1rem;
+  }
+
+  .progress{
+    width:100%;height:13px;background:#e4ded4;border-radius:999px;overflow:hidden;
+    border:1px solid #b8aa98;margin:.65rem 0 1rem;
+  }
+  #progressBar{height:100%;background:var(--terracotta);width:0;transition:width .3s ease}
+
+  .dashboard{
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:.75rem;
+    margin:1rem 0;
+  }
+  .meter-card{
+    border:1px solid var(--border);
+    background:var(--cream);
+    border-radius:13px;
+    padding:.8rem;
+    min-height:126px;
+  }
+  .meter-card strong{display:block;min-height:2.6em;color:var(--olive-dark)}
+  .meter-track{
+    width:100%;height:12px;background:#e2dacf;border-radius:999px;
+    overflow:hidden;border:1px solid #b9ab98;margin:.5rem 0;
+  }
+  .meter-fill{height:100%;width:0;background:var(--olive);transition:width .35s ease}
+  .meter-number{font-size:.88rem;font-weight:800}
+  .meter-status{font-size:.78rem;color:var(--muted);margin-top:.25rem}
+  .meter-aim{
+    margin-top:.5rem;
+    padding-top:.45rem;
+    border-top:1px solid #d8cdbf;
+    font-size:.75rem;
+    font-weight:800;
+    color:var(--olive-dark);
+  }
+
+  .indicator-guide{
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:#f8f4eb;
+    margin:1rem 0;
+    overflow:hidden;
+  }
+  .indicator-guide summary{
+    cursor:pointer;
+    list-style:none;
+    padding:.9rem 1rem;
+    background:var(--sage);
+    color:var(--olive-dark);
+    font-weight:900;
+    font-size:1.05rem;
+  }
+  .indicator-guide summary::-webkit-details-marker{display:none}
+  .indicator-guide summary::after{
+    content:"+";
+    float:right;
+    font-size:1.25rem;
+    line-height:1;
+  }
+  .indicator-guide[open] summary::after{content:"−"}
+  .indicator-guide-body{padding:1rem}
+  .indicator-overview{
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:.65rem;
+    margin:.8rem 0;
+  }
+  .indicator-explain{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:11px;
+    padding:.75rem;
+  }
+  .indicator-explain strong{display:block;color:var(--olive-dark);margin-bottom:.3rem}
+  .indicator-explain p{margin:.25rem 0;font-size:.82rem}
+  .indicator-explain .aim{font-weight:800;color:var(--terracotta-dark)}
+  .case-goal{
+    background:#fff;
+    border-left:6px solid var(--terracotta);
+    border-radius:10px;
+    padding:.8rem .9rem;
+    margin:.7rem 0;
+    font-weight:700;
+  }
+  .decision-steps{
+    margin:.55rem 0 .2rem 1.25rem;
+    padding:0;
+  }
+  .decision-steps li{margin:.35rem 0}
+  .best-pattern{
+    background:#edf3e7;
+    border:1px solid #aebd9d;
+    border-radius:10px;
+    padding:.75rem .9rem;
+    margin-top:.8rem;
+  }
+
+  .eaa-panel{
+    border:1px solid var(--border);
+    background:#f8f4eb;
+    border-radius:13px;
+    padding:1rem;
+    margin:1rem 0;
+  }
+  .eaa-grid{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:.45rem;margin-top:.65rem}
+  .eaa-chip{
+    border-radius:999px;
+    padding:.5rem .35rem;
+    text-align:center;
+    border:2px solid #9a8c7c;
+    background:#fff;
+    color:#62594f;
+    font-size:.76rem;
+    font-weight:800;
+  }
+  .eaa-chip.filled{background:var(--olive);color:#fff;border-color:var(--olive-dark)}
+
+  .choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+  .choice-card{
+    width:100%;text-align:left;background:#fff;
+    border:2px solid var(--border);border-radius:15px;padding:1rem;
+    color:var(--charcoal);min-height:185px;
+    transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease;
+  }
+  .choice-card:hover:not(:disabled){transform:translateY(-3px);border-color:var(--terracotta);box-shadow:0 8px 18px rgba(70,51,37,.14)}
+  .choice-card.selected{border-color:var(--olive-dark);background:#eff4e9;box-shadow:0 0 0 3px rgba(79,95,57,.18)}
+  .choice-card:disabled{cursor:default;opacity:.88}
+  .choice-title{font-size:1.08rem;font-weight:900;color:var(--olive-dark);display:flex;gap:.5rem;align-items:flex-start}
+  .choice-desc{margin:.55rem 0;color:#4d4741}
+  .choice-meta{display:inline-block;background:#f1e6d4;border-radius:999px;padding:.28rem .55rem;font-size:.78rem;font-weight:800}
+
+  .change-panel,.organ-box{display:none;margin-top:1rem}
+  .change-panel.show,.organ-box.show{display:block}
+  .change-panel{background:#f7f1e7;border:1px solid var(--border);border-radius:14px;padding:1rem}
+  .change-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.65rem}
+  .change-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:.7rem}
+  .change-values{display:flex;gap:.35rem;align-items:center;font-weight:900;margin-top:.35rem;flex-wrap:wrap}
+  .change-arrow{color:var(--muted)}
+  .change-good{color:#2f652c}
+  .change-watch{color:#8d341f}
+  .change-neutral{color:#4f4a45}
+
+  .organ-box{border-left:7px solid var(--blue);background:#edf5f6;border-radius:12px;padding:1rem}
+  .organ-title{font-weight:900;color:#244c55;font-size:1.08rem;margin-bottom:.25rem}
+  .concept-tag{display:inline-block;margin-top:.5rem;background:#fff;border:1px solid #8ba6ab;border-radius:999px;padding:.25rem .55rem;font-size:.8rem;font-weight:800}
+
+  .report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem}
+  .score-card{background:var(--cream);border:1px solid var(--border);border-radius:12px;padding:1rem}
+  .timeline{display:grid;gap:.75rem}
+  .timeline-item{border-left:6px solid var(--terracotta);background:var(--cream);padding:.8rem 1rem;border-radius:9px}
+  .timeline-stats{font-size:.82rem;color:var(--muted);margin-top:.35rem}
+
+  textarea,input[type="text"]{
+    width:100%;border:1px solid #81786f;border-radius:10px;padding:.75rem;background:#fff;color:var(--charcoal)
+  }
+  textarea{min-height:190px;resize:vertical}
+  input[type="text"]{min-height:46px}
+
+  .word-ok{color:#2f652c;font-weight:800}
+  .word-watch{color:#8d341f;font-weight:800}
+
+  .sr-only{
+    position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;
+    overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;
+  }
+
+  @media (max-width:980px){
+    .dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .indicator-overview{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .profile-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .eaa-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+    .change-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (max-width:760px){
+    header .wrap{align-items:flex-start;flex-direction:column}
+    #simIdHeader{text-align:left}
+    .hero{grid-template-columns:1fr}
+    .choice-grid,.report-grid,.criteria-grid{grid-template-columns:1fr}
+  }
+  @media (max-width:520px){
+    .dashboard,.profile-grid,.change-grid{grid-template-columns:1fr}
+    .indicator-overview{grid-template-columns:1fr}
+    .eaa-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .container{padding:.75rem}
+    .panel{padding:1rem}
+  }
+
+  @media print{
+    body{background:#fff;font-size:10.5pt}
+    header,.no-print,#welcomeScreen,#profileScreen,#simulationScreen{display:none!important}
+    #reportScreen{display:block!important}
+    .container{max-width:none;margin:0;padding:0}
+    .panel{box-shadow:none;border:1px solid #999;break-inside:avoid;margin:.4rem 0;padding:.75rem}
+    .report-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem}
+    .profile-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:.4rem}
+    .timeline-item{break-inside:avoid}
+    textarea{border:1px solid #777;min-height:150px}
+    .print-page-break{break-before:page}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">VS</div>
+      <div>
+        <h1>Valencia Nutrition SimLab</h1>
+        <div>Protein Builder: The Amino Acid Allocation Challenge</div>
+      </div>
+    </div>
+    <div id="simIdHeader" aria-live="polite"></div>
+  </div>
+</header>
+
+<main class="container">
+  <section id="welcomeScreen" class="screen active" aria-labelledby="welcomeTitle">
+    <div class="panel hero">
+      <div>
+        <h2 id="welcomeTitle">Build proteins without wasting the building blocks.</h2>
+        <p>You will manage protein intake for a randomized person across seven decisions. Your choices affect protein target progress, essential amino acid coverage, protein sparing, tissue balance, and nitrogen processing. Each new case file draws from expanded food pools and avoids repeating the immediately previous set whenever another eligible choice is available.</p>
+        <div class="notice"><strong>Your goal is not to chase the highest protein number.</strong> Your goal is to match protein quantity and quality with the person’s energy needs and body demand.</div>
+        <div class="button-row">
+          <button class="btn-primary" id="startBtn">Start Simulation</button>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="protein-chain">
+          <span class="chain-line l1"></span><span class="chain-line l2"></span><span class="chain-line l3"></span><span class="chain-line l4"></span>
+          <span class="aa-dot">AA</span><span class="aa-dot">AA</span><span class="aa-dot">AA</span><span class="aa-dot">AA</span><span class="aa-dot">AA</span>
+        </div>
+        <div class="hero-caption">Amino acid sequence → protein shape → protein function</div>
+      </div>
+    </div>
+
+    <div class="criteria-grid">
+      <div class="criteria-card"><h3>Purpose</h3><p>Connect protein food choices with digestion, essential amino acids, nitrogen balance, protein sparing, and tissue repair.</p></div>
+      <div class="criteria-card"><h3>Task</h3><p>Review the case file, calculate the assigned target, complete seven decisions, and finish one personalized Nutrition Debrief.</p></div>
+      <div class="criteria-card"><h3>Criteria</h3><p>Use your unique simulation data, apply at least two protein concepts, and predict how a different choice would change the outcome.</p></div>
+    </div>
+
+    <div class="panel">
+      <h3>How to Use the Five Indicators</h3>
+      <p><strong>Do not try to maximize every meter.</strong> Use the indicators together to choose the food that best meets the person’s remaining needs.</p>
+      <div class="indicator-overview">
+        <div class="indicator-explain">
+          <strong>Protein Target Progress</strong>
+          <p>Shows how many grams have been selected compared with the assigned target.</p>
+          <p class="aim">Consider: Is the person still short of the target, near it, or already above it?</p>
+        </div>
+        <div class="indicator-explain">
+          <strong>Essential Amino Acid Coverage</strong>
+          <p>Shows whether the day’s foods collectively represent all nine essential amino acids.</p>
+          <p class="aim">Consider: Does the next choice fill a gap through a complete protein or complementary foods?</p>
+        </div>
+        <div class="indicator-explain">
+          <strong>Protein-Sparing Support</strong>
+          <p>Shows whether carbohydrate and fat are available to provide energy so amino acids can support other functions.</p>
+          <p class="aim">Consider: Is this a balanced food choice or mostly isolated protein?</p>
+        </div>
+        <div class="indicator-explain">
+          <strong>Tissue Balance</strong>
+          <p>Shows whether the overall pattern creates pressure toward tissue loss, maintenance, or building and repair.</p>
+          <p class="aim">Consider: Does the result match the body demand in the case file?</p>
+        </div>
+        <div class="indicator-explain">
+          <strong>Nitrogen Processing Load</strong>
+          <p>Shows how strongly the model is routing surplus amino acids toward deamination and urea formation.</p>
+          <p class="aim">Consider: Would more protein improve another indicator, or mainly increase processing?</p>
+        </div>
+      </div>
+      <div class="best-pattern"><strong>A strong final pattern usually has:</strong> protein near the assigned target, all nine essential amino acids represented, moderate-to-strong protein sparing, tissue balance appropriate for the case, and a low-to-moderate nitrogen processing load.</div>
+      <p class="small">These are learning indicators, not clinical measurements or medical advice. The essential amino acid model is simplified: foods contain amino acids in varying amounts, and the SimLab highlights whether the day’s overall pattern supplies meaningful coverage.</p>
+    </div>
+  </section>
+
+  <section id="profileScreen" class="screen" aria-labelledby="profileTitle">
+    <div class="panel">
+      <h2 id="profileTitle">Meet Your Person</h2>
+      <div id="profileContent" class="profile-grid"></div>
+      <div id="targetCalculation" class="calculation"></div>
+      <div class="button-row">
+        <button class="btn-light" id="regenerateBtn">Generate a Different Case File</button>
+        <button class="btn-primary" id="beginDayBtn">Begin the Day</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="simulationScreen" class="screen" aria-labelledby="sceneTitle">
+    <div class="panel">
+      <div class="label">Decision <span id="sceneNumber">1</span> of 7 · <span id="sceneTime"></span></div>
+      <h2 id="sceneTitle"></h2>
+      <div class="progress" aria-label="Simulation progress"><div id="progressBar"></div></div>
+      <p id="scenePrompt"></p>
+
+      <details class="indicator-guide" open>
+        <summary>How should I use the dashboard for this decision?</summary>
+        <div class="indicator-guide-body">
+          <div id="caseIndicatorGoal" class="case-goal"></div>
+          <ol class="decision-steps">
+            <li><strong>Find the need:</strong> Check which indicator is furthest from the case goal.</li>
+            <li><strong>Compare the tradeoffs:</strong> A choice may add protein but offer limited amino acid variety or little energy for protein sparing.</li>
+            <li><strong>Avoid automatic choices:</strong> The option with the most protein is not always the best option, especially after the target and amino acid needs are met.</li>
+            <li><strong>Check the result:</strong> After selecting, use the “What Changed?” panel to see which indicators improved and which created a tradeoff.</li>
+          </ol>
+          <p class="small"><strong>Quick rule:</strong> Meet the protein and essential amino acid needs, support the person’s energy and tissue goal, and avoid a large unnecessary protein surplus.</p>
+        </div>
+      </details>
+
+      <div class="dashboard" aria-label="Current protein dashboard">
+        <div class="meter-card">
+          <strong>Protein Target Progress</strong>
+          <div class="meter-track"><div id="proteinFill" class="meter-fill"></div></div>
+          <div id="proteinText" class="meter-number"></div>
+          <div id="proteinStatus" class="meter-status"></div>
+          <div class="meter-aim">Aim: near the assigned target by the end</div>
+        </div>
+        <div class="meter-card">
+          <strong>Essential Amino Acid Coverage</strong>
+          <div class="meter-track"><div id="eaaFill" class="meter-fill"></div></div>
+          <div id="eaaText" class="meter-number"></div>
+          <div id="eaaStatus" class="meter-status"></div>
+          <div class="meter-aim">Aim: all 9 represented by the end</div>
+        </div>
+        <div class="meter-card">
+          <strong>Protein-Sparing Support</strong>
+          <div class="meter-track"><div id="sparingFill" class="meter-fill"></div></div>
+          <div id="sparingText" class="meter-number"></div>
+          <div id="sparingStatus" class="meter-status"></div>
+          <div class="meter-aim">Aim: moderate to strong energy support</div>
+        </div>
+        <div class="meter-card">
+          <strong>Tissue Balance</strong>
+          <div class="meter-track"><div id="tissueFill" class="meter-fill"></div></div>
+          <div id="tissueText" class="meter-number"></div>
+          <div id="tissueStatus" class="meter-status"></div>
+          <div id="tissueAim" class="meter-aim">Aim: match the case goal</div>
+        </div>
+        <div class="meter-card">
+          <strong>Nitrogen Processing Load</strong>
+          <div class="meter-track"><div id="nitrogenFill" class="meter-fill"></div></div>
+          <div id="nitrogenText" class="meter-number"></div>
+          <div id="nitrogenStatus" class="meter-status"></div>
+          <div class="meter-aim">Aim: low to moderate after needs are met</div>
+        </div>
+      </div>
+
+      <div class="eaa-panel">
+        <strong>Daily Essential Amino Acid Coverage Model</strong>
+        <div id="eaaGrid" class="eaa-grid" aria-label="Nine essential amino acids"></div>
+        <p class="small">Filled markers show amino acids meaningfully represented by choices made so far. The markers do not represent a storage tank.</p>
+      </div>
+
+      <div id="choiceGrid" class="choice-grid"></div>
+
+      <div id="changePanel" class="change-panel" aria-live="polite">
+        <h3 style="margin-top:0">What Changed?</h3>
+        <p class="small">Use this before-and-after snapshot in your final explanation.</p>
+        <div id="changeGrid" class="change-grid"></div>
+      </div>
+
+      <div id="organBox" class="organ-box" aria-live="polite">
+        <div class="organ-title" id="organTitle"></div>
+        <div id="organMessage"></div>
+        <div class="concept-tag" id="conceptTag"></div>
+      </div>
+
+      <div class="button-row">
+        <button class="btn-secondary btn-disabled" id="nextSceneBtn" disabled>Continue</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="reportScreen" class="screen" aria-labelledby="reportTitle">
+    <div class="panel">
+      <h2 id="reportTitle">Protein Builder Report</h2>
+      <div id="reportProfile" class="profile-grid"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Instructor Snapshot</h3>
+      <div id="instructorSnapshot" class="report-grid"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Protein Pivot of the Day</h3>
+      <div id="proteinPivot" class="score-card"></div>
+    </div>
+
+    <div class="panel">
+      <h3>End-of-Day Dashboard</h3>
+      <div id="reportScores" class="report-grid"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Essential Amino Acid Coverage</h3>
+      <div id="reportEaaGrid" class="eaa-grid"></div>
+      <p class="small">This simplified model reflects the combined pattern of foods selected during the SimLab.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Your Decision Timeline</h3>
+      <div id="reportTimeline" class="timeline"></div>
+    </div>
+
+    <div class="panel print-page-break">
+      <h3>Nutrition Debrief: Explain Your Protein Pivot</h3>
+      <p><strong>Write 150–250 words in your own thoughts and words.</strong></p>
+      <div class="notice">
+        Review your <em>Protein Pivot of the Day</em>. What happened during this decision, why did it cause the greatest overall response, and how would one realistic different choice have changed the outcome?
+      </div>
+      <p><strong>Your response must include all four parts:</strong></p>
+      <ol>
+        <li>Identify the specific decision and choice selected as your Protein Pivot.</li>
+        <li>Cite before-and-after data for at least two indicators.</li>
+        <li>Explain the response using at least two protein concepts, such as essential amino acids, complete or complementary proteins, protein sparing, digestion and absorption, nitrogen balance, deamination and urea, or protein functions.</li>
+        <li>Propose a different choice and predict its effect on at least two indicators.</li>
+      </ol>
+      <p class="small"><strong>Individual reasoning matters:</strong> refer to your assigned person, exact food choice, and unique dashboard values. Generic summaries, copied definitions, or wording that could fit any case do not meet the criteria.</p>
+
+      <label for="studentName"><strong>Student name</strong></label>
+      <input type="text" id="studentName" placeholder="Enter your full name">
+
+      <div style="margin-top:1rem">
+        <label for="nutritionDebrief"><strong>Write your complete Nutrition Debrief here:</strong></label>
+        <textarea id="nutritionDebrief" maxlength="2500" placeholder="Include the decision, before-and-after evidence, two protein concepts, and a predicted outcome from a different choice."></textarea>
+        <div id="wordCount" class="small" aria-live="polite">0 words</div>
+      </div>
+
+      <div class="button-row no-print">
+        <button class="btn-primary" id="printBtn">Save Report as PDF</button>
+        <button class="btn-light" id="restartBtn">Restart Simulation</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const ALL_EAA = ["His","Ile","Leu","Lys","Met","Phe","Thr","Trp","Val"];
+const EAA_NAMES = {
+  His:"Histidine", Ile:"Isoleucine", Leu:"Leucine", Lys:"Lysine", Met:"Methionine",
+  Phe:"Phenylalanine", Thr:"Threonine", Trp:"Tryptophan", Val:"Valine"
+};
+const COMPLETE = [...ALL_EAA];
+const LEGUME = ALL_EAA.filter(x=>x!=="Met");
+const GRAIN = ALL_EAA.filter(x=>x!=="Lys");
+const NUT_SEED = ALL_EAA.filter(x=>x!=="Lys");
+const LOW_MIX = ["His","Ile","Leu","Phe","Val"];
+
+const names = ["Maya","Jordan","Avery","Camila","Darius","Elena","Marcus","Nia","Owen","Priya","Sofia","Theo"];
+const roles = ["College student","Night-shift nurse","Office coordinator","Recreation coach","Graduate student","Retail manager","New teacher","Paramedic","Graphic designer","Lab assistant"];
+const dietaryPatterns = [
+  {id:"omnivore",label:"Omnivore"},
+  {id:"pescatarian",label:"Pescatarian"},
+  {id:"vegetarian",label:"Lacto-ovo vegetarian"},
+  {id:"vegan",label:"Vegan"}
+];
+const demandProfiles = [
+  {label:"Healthy adult maintenance",factor:.8,detail:"Maintain body tissues during a typical week.",threshold:70},
+  {label:"Recreational endurance training",factor:1.2,detail:"Support regular running, cycling, or sport practice.",threshold:74},
+  {label:"Beginning resistance training",factor:1.4,detail:"Support adaptation to a new strength-training routine.",threshold:76},
+  {label:"High-volume strength training",factor:1.8,detail:"Support frequent resistance exercise and muscle recovery.",threshold:78}
+];
+const energyPatterns = [
+  {label:"Meals are usually regular",initial:48,detail:"Adequate carbohydrate and fat are generally available."},
+  {label:"Busy schedule causes missed meals",initial:38,detail:"Protein may be used for energy when meals are skipped."},
+  {label:"Currently cutting calories aggressively",initial:28,detail:"Low energy availability can reduce protein sparing."},
+  {label:"Meals are available but often unbalanced",initial:42,detail:"Protein intake may be separated from other energy sources."}
+];
+
+function c(title,desc,protein,eaa,sparing,nitrogen,tier,patterns,meta,organ,message,concept,tags=[]){
+  return {title,desc,protein,eaa,sparing,nitrogen,tier,patterns,meta,organ,message,concept,tags};
+}
+
+const sceneTemplates = [
+  {
+    time:"7:30 AM",
+    title:"Build Breakfast",
+    prompts:[
+      "The day starts with an overnight fast behind your person. Choose a breakfast that fits the assigned dietary pattern.",
+      "Your person has a full morning ahead. Decide how breakfast will contribute protein and usable energy.",
+      "Start the amino acid pool for the day. Consider both protein quality and the energy packaged with the meal."
+    ],
+    drift:-3,
+    bank:[
+      c("Eggs, oatmeal, and berries","Two eggs with oatmeal and fruit.",22,COMPLETE,17,1,"supportive",["omnivore","pescatarian","vegetarian"],"Mixed breakfast","Stomach and small intestine","Acid unfolds the egg and oat proteins; pepsin and intestinal proteases release amino acids for absorption.","Digestion + complete protein",["complete","balanced"]),
+      c("Greek yogurt, walnuts, and fruit","Plain Greek yogurt with walnuts and fresh fruit.",23,COMPLETE,15,1,"supportive",["omnivore","pescatarian","vegetarian"],"Dairy + plant foods","Small intestine","A complete dairy protein supplies all nine essential amino acids, while carbohydrate and fat help spare amino acids from energy use.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Tofu scramble with whole-grain toast","Tofu, vegetables, and whole-grain toast.",24,COMPLETE,17,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Soy-based mixed meal","Amino acid pool","Soy is a complete plant protein. Toast also contributes energy and additional amino acids.","Complete plant protein",["complete","balanced","plant"]),
+      c("Soy yogurt, oats, and chia seeds","Unsweetened soy yogurt with oats and chia seeds.",19,COMPLETE,15,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Plant-based breakfast","Amino acid pool","Soy contributes all nine essential amino acids. Oats and chia broaden the day’s amino acid pattern.","Protein quality + variety",["complete","balanced","plant"]),
+      c("Peanut butter toast and banana","Whole-grain toast with peanut butter and a banana.",13,[...new Set([...LEGUME,...GRAIN])],14,1,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Complementary pair","Amino acid pool","The legume pattern in peanuts complements the grain pattern in bread. The meal is moderate in total protein but broad in essential amino acids.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Oatmeal with almond milk and fruit","Oatmeal prepared with almond milk plus fruit.",8,GRAIN,13,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Lower-protein breakfast","Amino acid pool","The meal provides energy for protein sparing, but its protein amount and lysine contribution are limited.","Incomplete protein + protein sparing",["incomplete","balanced","plant"]),
+      c("Coffee and a pastry","A pastry and sweetened coffee on the way out.",4,GRAIN,9,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Low-protein start","Cells","Carbohydrate supplies energy, but little dietary protein enters the amino acid pool.","Protein quantity",["lowprotein"]),
+      c("Skip breakfast","No food before the morning begins.",0,[], -14,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Missed meal","Muscle and liver","With no incoming amino acids or food energy, the body relies more heavily on stored fuels and recycled amino acids.","Negative nitrogen balance risk",["skip","lowprotein"]),
+      c("Breakfast burrito with eggs and beans","Eggs, black beans, vegetables, and salsa in a whole-grain tortilla.",25,COMPLETE,18,1,"supportive",["omnivore","pescatarian","vegetarian"],"Complete + complementary breakfast","Amino acid pool","Eggs provide complete protein, while beans and the tortilla broaden the amino acid mixture and provide energy.","Complete + complementary proteins",["complete","complementary","balanced"]),
+      c("Chickpea scramble and whole-grain toast","A chickpea-flour scramble with vegetables and whole-grain toast.",18,[...new Set([...LEGUME,...GRAIN])],16,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary plant breakfast","Amino acid pool","Chickpeas contribute lysine while the grain contributes methionine, creating broader essential amino acid coverage.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Overnight oats with soy milk and pumpkin seeds","Oats soaked in soy milk with pumpkin seeds and berries.",20,COMPLETE,16,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complete plant breakfast","Amino acid pool","Soy supplies all nine essential amino acids, and oats and seeds add energy and protein variety.","Complete plant protein + variety",["complete","balanced","plant"]),
+      c("Smoked salmon toast and fruit","Whole-grain toast topped with smoked salmon, served with fruit.",21,COMPLETE,15,1,"supportive",["omnivore","pescatarian"],"Fish-based breakfast","Small intestine","Salmon provides complete protein, while toast and fruit supply carbohydrate for protein sparing.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Bagel with cream cheese","A plain bagel with cream cheese and no additional protein food.",11,COMPLETE,11,1,"mixed",["omnivore","pescatarian","vegetarian"],"Moderate-protein breakfast","Small intestine","Dairy contributes complete protein, but the total protein amount is modest compared with a more balanced breakfast.","Protein quantity + quality",["complete","balanced"]),
+      c("Fruit smoothie made with juice","Fruit and juice blended without milk, soy milk, yogurt, nuts, or seeds.",3,LOW_MIX,10,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Low-protein smoothie","Cells","The smoothie supplies carbohydrate energy but very few amino acids for the body protein pool.","Protein quantity",["lowprotein","plant"]),
+      c("Toast with jam","White toast with jam and a hot beverage.",4,GRAIN,8,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Low-protein breakfast","Amino acid pool","The meal provides energy but little protein and limited lysine coverage.","Incomplete protein",["incomplete","lowprotein","plant"])
+    ]
+  },
+  {
+    time:"10:30 AM",
+    title:"Choose a Midmorning Option",
+    prompts:[
+      "Hunger and time pressure are building. Choose an option that supports the person until lunch.",
+      "A midmorning choice can add amino acids, usable energy, or both. Decide what the body receives.",
+      "Your person has a short break. Consider whether the choice adds whole protein, isolated amino acids, or very little protein."
+    ],
+    drift:-5,
+    bank:[
+      c("Cottage cheese and pineapple","A small bowl of cottage cheese with pineapple.",18,COMPLETE,12,1,"supportive",["omnivore","pescatarian","vegetarian"],"Complete-protein snack","Small intestine","Dairy protein is digested to amino acids, and the fruit supplies carbohydrate that supports protein sparing.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Soy milk and a banana","A cup of fortified soy milk with a banana.",9,COMPLETE,13,0,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Plant-based snack","Amino acid pool","Soy supplies all nine essential amino acids; the banana supplies energy so amino acids are less likely to be used as fuel.","Complete plant protein + protein sparing",["complete","balanced","plant"]),
+      c("Hummus and whole-grain crackers","Hummus with whole-grain crackers.",10,[...new Set([...LEGUME,...GRAIN])],12,0,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary snack","Amino acid pool","Legume and grain patterns complement one another across the snack.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Apple and almonds","An apple with a small handful of almonds.",7,NUT_SEED,11,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Whole-food snack","Cells","The snack supplies energy and some amino acids, but total protein and lysine contribution remain modest.","Incomplete protein + energy",["incomplete","balanced","plant"]),
+      c("Single-scoop protein shake with water","A 25-gram whole-protein powder mixed only with water.",25,COMPLETE,-2,6,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Isolated protein","Liver","The shake contributes complete protein, but little carbohydrate or fat. Some amino acids may be routed toward energy if overall energy availability is low.","Protein sparing + deamination",["complete","proteinonly","supplement"]),
+      c("BCAA capsules","An isolated branched-chain amino acid supplement.",5,["Ile","Leu","Val"],-3,8,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Individual amino acids","Small intestine and liver","Only three essential amino acids are supplied. Large amounts of selected amino acids can compete with others and do not replace a varied whole-protein source.","Amino acid supplementation",["aminoacid","supplement","proteinonly"]),
+      c("Skip the break","Water only until lunch.",0,[],-10,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"No snack","Cells","No new amino acids enter the pool, and ongoing activity lowers energy support.","Protein sparing",["skip","lowprotein"]),
+      c("Kefir and berries","A cup of plain kefir with berries.",12,COMPLETE,12,1,"supportive",["omnivore","pescatarian","vegetarian"],"Fermented dairy snack","Small intestine","Kefir supplies complete protein, and berries provide carbohydrate that supports protein sparing.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Edamame and an orange","Shelled edamame with a fresh orange.",14,COMPLETE,12,0,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complete plant snack","Amino acid pool","Edamame is a complete soy protein, and the orange contributes energy and micronutrients.","Complete plant protein",["complete","balanced","plant"]),
+      c("Roasted soy nuts and dried fruit","A small portion of roasted soy nuts with unsweetened dried fruit.",13,COMPLETE,11,0,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Portable plant snack","Amino acid pool","Soy contributes all nine essential amino acids while dried fruit provides carbohydrate energy.","Complete plant protein + protein sparing",["complete","balanced","plant"]),
+      c("Granola bar and fruit","A standard granola bar with a piece of fruit.",6,GRAIN,10,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Energy-focused snack","Cells","The snack supplies usable energy but only a modest amount of incomplete grain protein.","Incomplete protein + energy",["incomplete","balanced","plant"]),
+      c("Two hard-boiled eggs","Two eggs eaten alone.",12,COMPLETE,-1,3,"mixed",["omnivore","pescatarian","vegetarian"],"Protein-only snack","Liver","Eggs provide complete protein, but without other foods they offer less energy support for protein sparing.","Complete protein + protein sparing",["complete","proteinonly"]),
+      c("Collagen powder in coffee","A scoop of collagen peptides stirred into coffee.",10,LOW_MIX,-2,6,"challenge",["omnivore","pescatarian","vegetarian"],"Incomplete protein supplement","Amino acid pool","Collagen does not provide a complete essential amino acid pattern and cannot replace a varied whole-protein source.","Incomplete protein supplement",["incomplete","supplement","proteinonly"]),
+      c("Candy and soda","A sweet snack with no meaningful protein.",0,[],8,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Energy without protein","Cells","Sugar supplies energy, but no dietary amino acids enter the pool.","Protein quantity",["lowprotein"])
+    ]
+  },
+  {
+    time:"1:00 PM",
+    title:"Build Lunch",
+    prompts:[
+      "Lunch is the main opportunity to expand essential amino acid coverage. Choose a meal that fits the case file.",
+      "Your person needs a realistic lunch, not simply the largest protein number. Consider protein quality and the full meal.",
+      "Choose how lunch contributes to the amino acid pool and tissue needs."
+    ],
+    drift:-5,
+    bank:[
+      c("Chicken quinoa bowl","Chicken, quinoa, vegetables, and olive-oil dressing.",36,COMPLETE,19,2,"supportive",["omnivore"],"Whole-food mixed meal","Small intestine and cells","Complete protein enters the amino acid pool, while carbohydrate and fat provide energy for other body work.","Protein functions + protein sparing",["complete","balanced"]),
+      c("Salmon, potato, and vegetables","Baked salmon with a potato and vegetables.",34,COMPLETE,18,2,"supportive",["omnivore","pescatarian"],"Whole-food mixed meal","Small intestine and cells","Fish protein supplies all nine essential amino acids. The potato and dietary fat support energy needs.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Lentil soup and whole-grain pita","Lentil soup with whole-grain pita and vegetables.",22,[...new Set([...LEGUME,...GRAIN])],17,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary plant meal","Amino acid pool","Lentils are relatively low in methionine, while grains are relatively low in lysine. Together they broaden essential amino acid coverage.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Tofu and edamame rice bowl","Tofu, edamame, brown rice, and vegetables.",29,COMPLETE,18,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complete plant meal","Amino acid pool","Soy foods provide complete protein, and rice adds carbohydrate for protein sparing.","Complete plant protein",["complete","balanced","plant"]),
+      c("Black beans, rice, and salsa","Black beans with brown rice, salsa, and vegetables.",19,[...new Set([...LEGUME,...GRAIN])],17,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary plant meal","Amino acid pool","The classic legume-and-grain pairing supplies a broader essential amino acid pattern than either food alone.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Cheese quesadilla","A cheese quesadilla with a small side of salsa.",17,COMPLETE,10,2,"mixed",["omnivore","pescatarian","vegetarian"],"Moderate mixed meal","Small intestine","Cheese provides complete protein, but the meal offers less protein variety and less overall nutrient density than the larger mixed meals.","Complete protein",["complete"]),
+      c("Rice and vegetables","Rice with vegetables and sauce, without beans or another protein food.",7,GRAIN,13,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Grain-based meal","Amino acid pool","The meal supplies energy but leaves lysine and total protein relatively limited.","Incomplete protein + protein sparing",["incomplete","balanced","plant"]),
+      c("Large garden salad without a protein food","Vegetables and dressing without beans, tofu, eggs, dairy, fish, or meat.",5,LOW_MIX,8,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Very-low-protein meal","Cells","Vegetables contribute small amounts of amino acids, but this meal does not add enough protein for the assigned target.","Protein quantity",["lowprotein","plant"]),
+      c("Skip lunch to save calories","No lunch during the work or school day.",0,[],-18,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Missed meal","Muscle and liver","Low total energy availability reduces protein sparing and can shift the body toward tissue breakdown.","Negative nitrogen balance + protein sparing",["skip","lowprotein"]),
+      c("Turkey-avocado whole-grain wrap","Turkey, avocado, vegetables, and whole-grain tortilla.",31,COMPLETE,18,2,"supportive",["omnivore"],"Portable mixed lunch","Cells","Turkey supplies complete protein, while the tortilla and avocado provide energy that helps spare amino acids.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Tuna and white bean salad","Tuna, white beans, vegetables, and whole-grain crackers.",33,COMPLETE,18,2,"supportive",["omnivore","pescatarian"],"Fish + legume lunch","Amino acid pool","Tuna provides complete protein and beans add plant protein and carbohydrate.","Complete protein + protein variety",["complete","balanced"]),
+      c("Egg salad sandwich and vegetable soup","Egg salad on whole-grain bread with a cup of vegetable soup.",24,COMPLETE,17,1,"supportive",["omnivore","pescatarian","vegetarian"],"Complete-protein lunch","Small intestine and cells","Eggs supply all nine essential amino acids, and the bread and soup support energy needs.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Falafel pita with tahini","Falafel, vegetables, tahini, and whole-grain pita.",18,[...new Set([...LEGUME,...GRAIN])],16,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary plant lunch","Amino acid pool","Chickpeas and grains complement each other, while tahini adds additional amino acids and energy.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Tempeh noodle bowl","Tempeh, whole-grain noodles, vegetables, and peanut sauce.",28,COMPLETE,18,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complete plant lunch","Amino acid pool","Tempeh provides complete soy protein, and noodles supply carbohydrate for protein sparing.","Complete plant protein + protein sparing",["complete","balanced","plant"]),
+      c("Cheese pizza and side salad","Two slices of cheese pizza with a small side salad.",20,COMPLETE,11,3,"mixed",["omnivore","pescatarian","vegetarian"],"Moderate mixed lunch","Small intestine","Cheese contributes complete protein, but the meal may be higher in energy and lower in protein variety than other options.","Protein quantity + quality",["complete"]),
+      c("Vegetable sushi roll","A vegetable roll with rice, avocado, and cucumber but no tofu or fish.",6,GRAIN,11,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Low-protein grain meal","Amino acid pool","Rice provides some amino acids and energy, but total protein and lysine remain limited.","Incomplete protein + protein sparing",["incomplete","balanced","plant"]),
+      c("Chips and a soft drink","A bag of chips with a sugary drink instead of lunch.",3,LOW_MIX,8,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Very-low-protein lunch","Cells","The meal supplies energy but almost no amino acids needed for maintenance and repair.","Protein quantity",["lowprotein"]),
+      c("Broth and crackers","A cup of clear vegetable broth with crackers.",4,GRAIN,7,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Low-protein meal","Amino acid pool","The meal offers fluid and carbohydrate but little total protein and incomplete amino acid coverage.","Incomplete protein",["incomplete","lowprotein","plant"])
+    ]
+  },
+  {
+    time:"4:00 PM",
+    title:"Handle the Busy Afternoon",
+    prompts:[
+      "The afternoon runs longer than expected. Choose what is realistic for the person’s schedule.",
+      "Energy availability is dropping. Decide whether protein will be paired with other fuel or asked to do too much.",
+      "A rushed choice can influence whether amino acids are available for synthesis or diverted toward energy."
+    ],
+    drift:-8,
+    bank:[
+      c("Turkey sandwich and fruit","Turkey on whole-grain bread with fruit.",25,COMPLETE,16,1,"supportive",["omnivore"],"Portable mixed meal","Cells","Complete protein plus carbohydrate supports the amino acid pool and helps spare protein from energy use.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Tuna and whole-grain crackers","Tuna with whole-grain crackers and fruit.",24,COMPLETE,15,1,"supportive",["omnivore","pescatarian"],"Portable mixed meal","Cells","Tuna supplies complete protein, while crackers and fruit support energy needs.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Egg and whole-grain snack box","A hard-boiled egg, whole-grain crackers, and fruit.",14,COMPLETE,14,1,"supportive",["omnivore","pescatarian","vegetarian"],"Balanced snack box","Amino acid pool","The egg supplies complete protein, and the carbohydrate-containing foods help spare amino acids.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Roasted chickpeas and whole-grain pretzels","Roasted chickpeas with whole-grain pretzels.",13,[...new Set([...LEGUME,...GRAIN])],13,0,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary snack","Amino acid pool","Legumes and grains complement each other and provide both amino acids and usable energy.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Peanut butter sandwich","Peanut butter on whole-grain bread.",15,[...new Set([...LEGUME,...GRAIN])],14,0,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary snack","Amino acid pool","The legume-and-grain pairing improves amino acid coverage and supplies energy.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Protein bar","A 20-gram whole-protein bar.",20,COMPLETE,5,4,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Processed protein snack","Liver","The bar adds complete protein, but the degree of protein sparing depends on the bar’s energy and the rest of the day.","Whole protein supplement",["complete","supplement"]),
+      c("Energy drink only","A caffeinated beverage without meaningful protein.",0,[],4,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Energy without protein","Cells","The beverage may contribute carbohydrate energy, but it does not replenish the amino acid pool.","Protein quantity",["lowprotein"]),
+      c("Nothing until dinner","No food despite the long gap.",0,[],-13,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Long meal gap","Muscle and liver","As energy availability falls, the body may rely more on stored fuels and body proteins.","Protein sparing + negative nitrogen balance",["skip","lowprotein"]),
+      c("Greek yogurt, granola, and berries","Greek yogurt topped with granola and berries.",19,COMPLETE,15,1,"supportive",["omnivore","pescatarian","vegetarian"],"Balanced snack","Cells","Complete dairy protein plus carbohydrate helps maintain amino acid availability and protein sparing.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Salmon rice cakes and fruit","Salmon on whole-grain rice cakes with fruit.",21,COMPLETE,14,1,"supportive",["omnivore","pescatarian"],"Portable fish snack","Cells","Salmon supplies complete protein, and rice cakes and fruit contribute energy.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Tofu vegetable wrap","Tofu, vegetables, and hummus in a whole-grain wrap.",18,COMPLETE,16,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complete plant snack-meal","Amino acid pool","Tofu provides complete soy protein, while the wrap and hummus add energy and protein variety.","Complete plant protein",["complete","balanced","plant"]),
+      c("Bean and rice burrito","Beans, brown rice, salsa, and vegetables in a tortilla.",16,[...new Set([...LEGUME,...GRAIN])],16,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary portable meal","Amino acid pool","Beans and grains complement one another and supply usable energy for protein sparing.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Fruit smoothie with almond milk","Fruit blended with almond milk but no soy, dairy, nuts, or protein powder.",4,LOW_MIX,12,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Energy-focused smoothie","Cells","The smoothie supplies carbohydrate but only a small amount of protein.","Protein quantity + protein sparing",["lowprotein","balanced","plant"]),
+      c("Beef jerky only","A serving of beef jerky without fruit, crackers, or another energy source.",14,COMPLETE,-2,4,"mixed",["omnivore"],"Protein-only snack","Liver","The snack adds complete protein but little carbohydrate or fat to support protein sparing.","Complete protein + protein sparing",["complete","proteinonly"]),
+      c("BCAA drink only","A flavored beverage containing only branched-chain amino acids.",5,["Ile","Leu","Val"],-3,8,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Isolated amino acids","Amino acid pool","Three amino acids cannot provide the full set required for body protein synthesis.","Amino acid supplementation",["aminoacid","supplement","proteinonly"]),
+      c("Chips from the vending machine","A small bag of chips with no meaningful protein food.",3,LOW_MIX,7,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Low-protein snack","Cells","The snack supplies some energy but little protein and limited essential amino acid coverage.","Protein quantity",["lowprotein"])
+    ]
+  },
+  {
+    time:"6:00 PM",
+    title:"Meet the Body Demand",
+    prompts:[
+      "The person has completed the activity or recovery demand listed in the case file. Choose the next intake.",
+      "Body tissues now need both amino acids and energy. Decide what the recovery choice provides.",
+      "This decision tests whether protein is paired with enough energy to support repair and adaptation."
+    ],
+    drift:-10,
+    bank:[
+      c("Chicken, rice, and vegetables","A moderate portion of chicken with rice and vegetables.",35,COMPLETE,20,2,"supportive",["omnivore"],"Recovery meal","Muscle cells","Complete protein supplies amino acids for repair, while rice supplies carbohydrate so protein is less likely to be burned for energy.","Positive nitrogen balance + protein sparing",["complete","balanced","recovery"]),
+      c("Salmon, quinoa, and vegetables","Salmon with quinoa and vegetables.",34,COMPLETE,19,2,"supportive",["omnivore","pescatarian"],"Recovery meal","Muscle cells","The meal supplies complete protein and energy to support tissue repair and synthesis.","Positive nitrogen balance + protein sparing",["complete","balanced","recovery"]),
+      c("Eggs, potatoes, and vegetables","Eggs with roasted potatoes and vegetables.",25,COMPLETE,18,1,"supportive",["omnivore","pescatarian","vegetarian"],"Recovery meal","Muscle cells","Egg protein provides all essential amino acids, and potatoes provide carbohydrate for protein sparing.","Complete protein + tissue repair",["complete","balanced","recovery"]),
+      c("Tempeh, rice, and vegetables","Tempeh with rice and vegetables.",30,COMPLETE,20,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Plant-based recovery meal","Muscle cells","Soy protein is complete, and rice supplies energy to support protein synthesis.","Complete plant protein + tissue repair",["complete","balanced","plant","recovery"]),
+      c("Lentil pasta with tomato sauce","Lentil-based pasta with tomato sauce and vegetables.",24,LEGUME,17,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"High-protein plant meal","Amino acid pool","Lentil pasta contributes substantial protein and lysine. Variety elsewhere in the day helps complete the amino acid pattern.","Protein variety across the day",["incomplete","balanced","plant","recovery"]),
+      c("Double-scoop protein shake with water","A shake providing about 45 grams of whole protein, without other food.",45,COMPLETE,-3,16,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Large isolated protein dose","Liver and kidneys","The amino acids are absorbed, but protein beyond immediate needs cannot be stored in a separate reserve. More amino groups are routed through deamination and urea production.","Excess protein + deamination",["complete","proteinonly","supplement","excess"]),
+      c("Sports drink only","Carbohydrate and fluid without protein.",0,[],16,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Energy without amino acids","Muscle cells","Carbohydrate supports energy and protein sparing, but no new amino acids are supplied for repair.","Protein sparing without protein",["lowprotein"]),
+      c("Wait until later","No food or drink with energy after the activity demand.",0,[],-16,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Delayed recovery","Muscle cells","Without incoming amino acids or energy, tissue repair support remains limited.","Negative nitrogen balance risk",["skip","lowprotein"]),
+      c("Greek yogurt smoothie with banana","Greek yogurt blended with banana, oats, and milk.",24,COMPLETE,19,1,"supportive",["omnivore","pescatarian","vegetarian"],"Recovery smoothie","Muscle cells","Complete dairy protein provides amino acids, while banana and oats supply carbohydrate for protein sparing.","Complete protein + tissue repair",["complete","balanced","recovery"]),
+      c("Tuna pasta salad","Tuna, whole-grain pasta, vegetables, and olive-oil dressing.",31,COMPLETE,19,2,"supportive",["omnivore","pescatarian"],"Mixed recovery meal","Muscle cells","Tuna supplies complete protein and pasta supplies energy to support repair rather than amino acid oxidation.","Positive nitrogen balance + protein sparing",["complete","balanced","recovery"]),
+      c("Black bean burrito bowl","Black beans, brown rice, corn, vegetables, and avocado.",21,[...new Set([...LEGUME,...GRAIN])],19,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary recovery meal","Muscle cells","Beans and grains provide a broad amino acid pattern, while the mixed meal supplies energy for tissue repair.","Complementary proteins + tissue repair",["complementary","balanced","plant","recovery"]),
+      c("Tofu soba bowl","Tofu, soba noodles, vegetables, and sesame sauce.",27,COMPLETE,19,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complete plant recovery meal","Muscle cells","Tofu supplies complete protein, and noodles provide carbohydrate to support protein sparing.","Complete plant protein + tissue repair",["complete","balanced","plant","recovery"]),
+      c("Chocolate milk","A bottle of chocolate milk after activity.",13,COMPLETE,15,1,"mixed",["omnivore","pescatarian","vegetarian"],"Mixed recovery beverage","Muscle cells","Milk supplies complete protein and carbohydrate, though the protein amount is lower than in a full recovery meal.","Complete protein + protein sparing",["complete","balanced","recovery"]),
+      c("Banana and sports drink","Carbohydrate and fluid without a meaningful protein source.",1,[],17,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Energy without protein","Muscle cells","Carbohydrate supports protein sparing, but very few new amino acids are available for repair.","Protein sparing without protein",["lowprotein","balanced"]),
+      c("Collagen recovery drink","A collagen-peptide drink mixed with water after activity.",15,LOW_MIX,-2,8,"challenge",["omnivore","pescatarian","vegetarian"],"Incomplete recovery supplement","Amino acid pool","Collagen does not supply a complete essential amino acid pattern and provides little energy for protein sparing.","Incomplete protein supplement",["incomplete","supplement","proteinonly"]),
+      c("Caffeinated pre-workout only","A stimulant beverage without calories or protein after the body demand.",0,[],-14,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"No recovery nutrition","Muscle cells","Stimulation does not replace energy or amino acids needed to support tissue repair.","Negative nitrogen balance risk",["skip","lowprotein"])
+    ]
+  },
+  {
+    time:"8:00 PM",
+    title:"Build Dinner",
+    prompts:[
+      "Dinner can correct gaps or add unnecessary excess. Review the dashboard before choosing.",
+      "The day is nearly complete. Choose a dinner that fits the dietary pattern and remaining needs.",
+      "Use the dashboard rather than assuming that more protein is always the best answer."
+    ],
+    drift:-6,
+    bank:[
+      c("Lean beef, sweet potato, and vegetables","A moderate portion of lean beef with sweet potato and vegetables.",34,COMPLETE,18,3,"supportive",["omnivore"],"Whole-food mixed dinner","Cells","Complete protein supports body functions, while the mixed meal provides energy and other nutrients.","Complete protein + protein functions",["complete","balanced"]),
+      c("Fish tacos with beans","Fish tacos with black beans, cabbage, and corn tortillas.",31,COMPLETE,18,2,"supportive",["omnivore","pescatarian"],"Mixed dinner","Amino acid pool","Fish supplies complete protein; beans and tortillas also broaden plant-protein intake.","Complete + complementary proteins",["complete","complementary","balanced"]),
+      c("Vegetable omelet with whole-grain toast","Eggs, vegetables, and whole-grain toast.",24,COMPLETE,17,1,"supportive",["omnivore","pescatarian","vegetarian"],"Mixed dinner","Cells","Eggs supply complete protein, and toast provides energy for protein sparing.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Chickpea curry with brown rice","Chickpeas, brown rice, and vegetables.",20,[...new Set([...LEGUME,...GRAIN])],18,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary plant dinner","Amino acid pool","Legumes and grains complement each other across the meal.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Quinoa, black bean, and vegetable bowl","Quinoa with black beans and vegetables.",23,COMPLETE,18,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complete plant dinner","Amino acid pool","Quinoa contains all nine essential amino acids, and beans add more protein and lysine.","Complete plant protein",["complete","balanced","plant"]),
+      c("Macaroni and cheese","A bowl of macaroni and cheese without additional vegetables or protein foods.",16,COMPLETE,12,2,"mixed",["omnivore","pescatarian","vegetarian"],"Moderate-protein dinner","Small intestine","Dairy contributes complete protein, though the total meal may not close a large target gap.","Protein quantity + quality",["complete"]),
+      c("Vegetable soup and bread","Vegetable soup with bread, without beans, lentils, tofu, dairy, eggs, fish, or meat.",8,GRAIN,14,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Lower-protein dinner","Cells","The meal provides energy but only a modest amount of incomplete protein.","Incomplete protein + protein sparing",["incomplete","balanced","plant"]),
+      c("Large steak by itself","A very large steak without a carbohydrate-containing side.",58,COMPLETE,-2,18,"challenge",["omnivore"],"Very large protein-only meal","Liver and kidneys","Protein beyond current needs cannot be stored as a protein reserve. More amino groups must be removed and converted to urea.","Excess protein + deamination",["complete","proteinonly","excess"]),
+      c("Skip dinner","No evening meal.",0,[],-18,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Missed meal","Muscle and liver","A missed meal lowers both amino acid availability and energy support.","Negative nitrogen balance risk",["skip","lowprotein"]),
+      c("Turkey meatballs with whole-grain pasta","Turkey meatballs, whole-grain pasta, tomato sauce, and vegetables.",32,COMPLETE,19,2,"supportive",["omnivore"],"Mixed dinner","Cells","Turkey provides complete protein, and pasta supplies carbohydrate for protein sparing.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Shrimp stir-fry with brown rice","Shrimp, vegetables, and brown rice in a light sauce.",29,COMPLETE,18,2,"supportive",["omnivore","pescatarian"],"Seafood mixed dinner","Cells","Shrimp supplies complete protein, while rice provides energy to support other body work.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Bean enchiladas with corn and vegetables","Black bean enchiladas with corn tortillas, vegetables, and salsa.",21,[...new Set([...LEGUME,...GRAIN])],18,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary plant dinner","Amino acid pool","Beans and corn tortillas complement one another and provide energy with the amino acids.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Tofu peanut noodles","Tofu, whole-grain noodles, vegetables, and peanut sauce.",28,COMPLETE,19,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complete plant dinner","Amino acid pool","Tofu provides complete soy protein, while noodles and peanut sauce add energy and protein variety.","Complete plant protein",["complete","balanced","plant"]),
+      c("Lentil shepherd’s pie","Lentils, peas, vegetables, and a mashed-potato topping.",22,LEGUME,18,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"High-protein plant dinner","Amino acid pool","Lentils contribute substantial lysine, while other foods eaten during the day help complete the amino acid pattern.","Protein variety across the day",["incomplete","balanced","plant"]),
+      c("Pasta with marinara","Pasta and tomato sauce without beans, lentils, tofu, cheese, fish, or meat.",10,GRAIN,15,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Grain-based dinner","Amino acid pool","The meal provides energy and some protein, but lysine and total protein remain limited.","Incomplete protein + protein sparing",["incomplete","balanced","plant"]),
+      c("Cheese pizza","Two slices of cheese pizza without a vegetable or protein-rich side.",20,COMPLETE,11,3,"mixed",["omnivore","pescatarian","vegetarian"],"Moderate-protein dinner","Small intestine","Cheese supplies complete protein, but the meal may not address other gaps as effectively as a balanced dinner.","Protein quantity + quality",["complete"]),
+      c("Seitan strips by themselves","A large serving of plain seitan without grains, legumes, or vegetables.",35,GRAIN,-2,10,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Large incomplete protein-only meal","Liver","Seitan is high in total protein but relatively low in lysine, and the isolated meal provides little energy variety.","High quantity does not ensure quality",["incomplete","proteinonly","plant","excess"]),
+      c("Plain baked potato","A large baked potato without beans, dairy, tofu, fish, or meat.",7,LOW_MIX,13,0,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Low-protein dinner","Cells","The potato provides carbohydrate energy but little protein for the assigned daily target.","Protein quantity",["lowprotein","balanced","plant"])
+    ]
+  },
+  {
+    time:"9:30 PM",
+    title:"Decide Whether More Protein Is Needed",
+    prompts:[
+      "A social-media post claims that everyone needs a large protein supplement before bed. Use the dashboard to decide.",
+      "Your person is considering one last intake. Review target progress, amino acid coverage, and nitrogen processing.",
+      "This final decision tests the idea that more protein is always better."
+    ],
+    drift:-3,
+    bank:[
+      c("Balanced small snack","A modest snack such as yogurt and fruit, or soy yogurt and fruit.",12,COMPLETE,10,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Moderate mixed snack","Cells","A modest amount of complete protein plus energy can fill a remaining gap without creating a very large surplus.","Protein balance",["complete","balanced"]),
+      c("No extra protein; finish the normal day","Water only because the person is satisfied and the dashboard shows adequate progress.",0,[],2,0,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Target-aware decision","Liver","When protein and energy needs are already met, an additional large protein dose is not required for a storage reserve.","Protein has no specialized storage",["targetaware"]),
+      c("Whole-grain toast with peanut butter","A small piece of whole-grain toast with peanut butter.",9,[...new Set([...LEGUME,...GRAIN])],10,0,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary snack","Amino acid pool","The snack contributes complementary plant proteins and energy in a moderate portion.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Another 30-gram protein shake","A second whole-protein shake mixed with water.",30,COMPLETE,-2,14,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Additional isolated protein","Liver and kidneys","The dose adds amino acids, but any surplus cannot be stored as extra protein. Deamination and urea production increase.","Excess protein + urea",["complete","proteinonly","supplement","excess"]),
+      c("Leucine supplement","An isolated leucine supplement taken without a meal.",3,["Leu"],-2,9,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Single amino acid","Small intestine","A single amino acid cannot substitute for the full set needed to synthesize body proteins and may compete with other amino acids for absorption.","Amino acid supplementation",["aminoacid","supplement","proteinonly"]),
+      c("Large protein-only snack plate","A large portion of cheese, eggs, or meat without other foods.",38,COMPLETE,-1,15,"challenge",["omnivore","pescatarian","vegetarian"],"Large protein-only intake","Liver and kidneys","The protein is digested and absorbed, but a surplus increases deamination rather than creating a protein-storage tank.","Excess protein + deamination",["complete","proteinonly","excess"]),
+      c("Large bowl of plain edamame","A large serving of edamame without other foods.",28,COMPLETE,2,9,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Large single-food protein dose","Liver","Soy provides complete protein, but a large late surplus still increases amino acid breakdown when needs are already met.","Complete protein does not prevent excess",["complete","proteinonly","plant","excess"]),
+      c("Milk or soy milk with whole-grain cereal","A small bowl of whole-grain cereal with dairy or soy milk.",11,COMPLETE,11,1,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Balanced small snack","Cells","Dairy or soy supplies complete protein, and cereal provides carbohydrate in a moderate portion.","Complete protein + protein sparing",["complete","balanced"]),
+      c("Cottage cheese and whole-grain crackers","A small serving of cottage cheese with a few whole-grain crackers.",14,COMPLETE,9,1,"supportive",["omnivore","pescatarian","vegetarian"],"Moderate mixed snack","Cells","The snack supplies complete protein and some carbohydrate without a very large protein dose.","Protein balance",["complete","balanced"]),
+      c("Small hummus pita","A half whole-grain pita with hummus and vegetables.",7,[...new Set([...LEGUME,...GRAIN])],9,0,"supportive",["omnivore","pescatarian","vegetarian","vegan"],"Complementary small snack","Amino acid pool","The legume-and-grain combination broadens essential amino acid coverage in a modest portion.","Complementary proteins",["complementary","balanced","plant"]),
+      c("Banana only","A banana because the person wants a small amount of energy but no more protein.",1,[],8,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Energy-only snack","Cells","The fruit adds carbohydrate but almost no protein. Whether this is appropriate depends on the completed dashboard.","Protein target awareness",["lowprotein","balanced"]),
+      c("Oatmeal made with water","A small bowl of oatmeal prepared with water.",5,GRAIN,9,0,"mixed",["omnivore","pescatarian","vegetarian","vegan"],"Incomplete-protein snack","Amino acid pool","Oats add energy and some amino acids, but lysine coverage remains limited.","Incomplete protein",["incomplete","balanced","plant"]),
+      c("Collagen gummies","A serving of collagen gummies marketed for overnight recovery.",6,LOW_MIX,-1,6,"challenge",["omnivore","pescatarian","vegetarian"],"Incomplete protein supplement","Amino acid pool","Collagen is not a complete protein and does not create an overnight protein reserve.","Incomplete protein + supplementation",["incomplete","supplement","proteinonly"]),
+      c("Essential amino acid powder","A concentrated essential-amino-acid powder mixed with water after the day’s protein target is already met.",10,COMPLETE,-2,10,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Isolated amino acid dose","Liver","Even a complete essential-amino-acid mixture cannot be stored as a separate protein reserve when current needs are met.","Amino acid excess + deamination",["aminoacid","supplement","proteinonly","excess"]),
+      c("Large seitan snack","A large plate of seitan slices without another food.",32,GRAIN,-2,10,"challenge",["omnivore","pescatarian","vegetarian","vegan"],"Large incomplete protein dose","Liver","Seitan is high in total protein but low in lysine, and a late surplus still increases amino acid breakdown.","Protein quantity versus quality",["incomplete","proteinonly","plant","excess"])
+    ]
+  }
+];
+
+let currentProfile = null;
+let currentScenes = [];
+let currentScene = 0;
+let selectedChoice = null;
+let simId = "";
+let driftAppliedForScene = -1;
+let state = {};
+const PREVIOUS_CHOICES_KEY = "proteinBuilderPreviousChoices";
+
+function sample(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(arr){
+  const copy=[...arr];
+  for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}
+  return copy;
+}
+function clamp(n,min=0,max=100){return Math.max(min,Math.min(max,n))}
+function makeId(){return "PB-"+Date.now().toString(36).slice(-5).toUpperCase()+"-"+Math.random().toString(36).slice(2,6).toUpperCase()}
+function unique(arr){return [...new Set(arr)]}
+function loadPreviousChoiceTitles(){
+  try{
+    const saved=JSON.parse(sessionStorage.getItem(PREVIOUS_CHOICES_KEY)||"[]");
+    return Array.isArray(saved)?saved:[];
+  }catch(error){
+    return [];
+  }
+}
+function saveCurrentChoiceTitles(scenes){
+  try{
+    sessionStorage.setItem(PREVIOUS_CHOICES_KEY,JSON.stringify(scenes.map(scene=>scene.choices.map(choice=>choice.title))));
+  }catch(error){
+    // The simulation still works when browser storage is unavailable.
+  }
+}
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function buildProfile(){
+  const dietary = sample(dietaryPatterns);
+  const demand = sample(demandProfiles);
+  const energy = sample(energyPatterns);
+  const weightLb = Math.round(118 + Math.random()*112);
+  const age = Math.round(19 + Math.random()*43);
+  const kg = weightLb/2.2;
+  const target = Math.round(kg*demand.factor);
+  currentProfile = {
+    name:sample(names),age,role:sample(roles),weightLb,
+    dietary,demand,energy,target,kg
+  };
+  simId=makeId();
+  $("simIdHeader").textContent="Simulation ID: "+simId;
+
+  const previousChoiceTitles=loadPreviousChoiceTitles();
+  currentScenes = sceneTemplates.map((scene,sceneIndex)=>{
+    const eligible = scene.bank.filter(choice=>choice.patterns.includes(dietary.id));
+    const tiers=["supportive","mixed","challenge"];
+    const previousForScene=new Set(previousChoiceTitles[sceneIndex]||[]);
+    const selected=tiers.map(tier=>{
+      const tierPool=eligible.filter(choice=>choice.tier===tier);
+      const freshPool=tierPool.filter(choice=>!previousForScene.has(choice.title));
+      return sample(freshPool.length?freshPool:tierPool);
+    }).filter(Boolean);
+    return {...scene,prompt:sample(scene.prompts),choices:shuffle(selected)};
+  });
+  saveCurrentChoiceTitles(currentScenes);
+
+  $("profileContent").innerHTML=profileCards(currentProfile);
+  $("targetCalculation").innerHTML=`
+    <strong>Assigned Protein Planning Target</strong><br>
+    ${currentProfile.weightLb} lb ÷ 2.2 = ${currentProfile.kg.toFixed(1)} kg<br>
+    ${currentProfile.kg.toFixed(1)} kg × ${currentProfile.demand.factor.toFixed(1)} g/kg = <strong>${currentProfile.target} g protein for this SimLab day</strong>
+    <p class="small" style="margin-bottom:0">The factor reflects the randomized activity demand. It is a learning target, not an individualized clinical prescription.</p>`;
+}
+
+function profileCards(p){
+  const items=[
+    ["Name",p.name],
+    ["Age",p.age],
+    ["Role",p.role],
+    ["Weight",p.weightLb+" lb"],
+    ["Dietary Pattern",p.dietary.label],
+    ["Body Demand",p.demand.label],
+    ["Today’s Goal",p.demand.detail],
+    ["Energy Pattern",p.energy.label]
+  ];
+  return items.map(([a,b])=>`<div class="profile-item"><span class="label">${a}</span><span class="value">${b}</span></div>`).join("");
+}
+
+function resetState(){
+  state={
+    protein:0,
+    eaa:new Set(),
+    sparing:currentProfile.energy.initial,
+    tissue:-50,
+    nitrogen:0,
+    history:[],
+    counts:{complete:0,complementary:0,incomplete:0,proteinonly:0,supplement:0,skip:0,lowprotein:0,excess:0,plant:0,targetaware:0,recovery:0,aminoacid:0,balanced:0}
+  };
+  state.tissue=calculateTissue();
+}
+
+function calculateTissue(){
+  if(!currentProfile) return -50;
+  const proteinPct=Math.min(100,(state.protein/currentProfile.target)*100);
+  const eaaPct=(state.eaa.size/9)*100;
+  const composite=(proteinPct*.45)+(eaaPct*.25)+(state.sparing*.30);
+  return clamp(Math.round(composite-currentProfile.demand.threshold),-60,40);
+}
+
+function tissueLabel(v){
+  if(v<=-20) return "Negative balance / tissue loss pressure";
+  if(v<20) return "Equilibrium / maintenance range";
+  return "Positive balance / building and repair support";
+}
+function proteinLabel(){
+  const pct=state.protein/currentProfile.target*100;
+  if(pct<60) return "Target still developing";
+  if(pct<=115) return "Near or within target range";
+  return "Above the assigned target";
+}
+function eaaLabel(){
+  if(state.eaa.size<6) return "Several essential amino acid gaps remain";
+  if(state.eaa.size<9) return "Most essential amino acids represented";
+  return "All nine represented in the daily pattern";
+}
+function sparingLabel(v){
+  if(v<35) return "Low energy support; protein may be diverted";
+  if(v<65) return "Moderate energy support";
+  return "Strong protein-sparing support";
+}
+function nitrogenLabel(v){
+  if(v<25) return "Low simulated processing load";
+  if(v<55) return "Moderate simulated processing load";
+  return "High simulated processing load from surplus or protein-only choices";
+}
+
+function tissueGoalText(){
+  if(!currentProfile) return "match the case goal";
+  if(currentProfile.demand.label==="Healthy adult maintenance") return "equilibrium / maintenance by the end";
+  return "positive building and repair support by the end";
+}
+
+function caseIndicatorGoalText(){
+  const tissueGoal=currentProfile.demand.label==="Healthy adult maintenance"
+    ? "an equilibrium or maintenance tissue balance"
+    : "a positive tissue balance that supports training adaptation and repair";
+  return `Case goal for ${currentProfile.name}: finish near ${currentProfile.target} g protein, represent all nine essential amino acids, maintain moderate-to-strong protein-sparing support, reach ${tissueGoal}, and keep nitrogen processing low to moderate rather than adding unnecessary surplus protein.`;
+}
+
+function meterColor(key,value){
+  if(key==="nitrogen"){
+    if(value<25) return "var(--olive)";
+    if(value<55) return "var(--gold)";
+    return "var(--danger)";
+  }
+  if(key==="tissue"){
+    if(value<=-20) return "var(--danger)";
+    if(value<20) return "var(--gold)";
+    return "var(--olive)";
+  }
+  if(value<35) return "var(--danger)";
+  if(value<65) return "var(--gold)";
+  return "var(--olive)";
+}
+
+function updateDashboard(){
+  const proteinPct=clamp((state.protein/currentProfile.target)*100);
+  $("proteinFill").style.width=proteinPct+"%";
+  $("proteinFill").style.background=meterColor("protein",proteinPct);
+  $("proteinText").textContent=`${Math.round(state.protein)} g / ${currentProfile.target} g`;
+  $("proteinStatus").textContent=proteinLabel();
+
+  const eaaPct=(state.eaa.size/9)*100;
+  $("eaaFill").style.width=eaaPct+"%";
+  $("eaaFill").style.background=meterColor("eaa",eaaPct);
+  $("eaaText").textContent=`${state.eaa.size} / 9 represented`;
+  $("eaaStatus").textContent=eaaLabel();
+
+  $("sparingFill").style.width=state.sparing+"%";
+  $("sparingFill").style.background=meterColor("sparing",state.sparing);
+  $("sparingText").textContent=`${Math.round(state.sparing)} / 100`;
+  $("sparingStatus").textContent=sparingLabel(state.sparing);
+
+  const tissueWidth=clamp(((state.tissue+60)/100)*100);
+  $("tissueFill").style.width=tissueWidth+"%";
+  $("tissueFill").style.background=meterColor("tissue",state.tissue);
+  $("tissueText").textContent=`${state.tissue>0?"+":""}${state.tissue}`;
+  $("tissueStatus").textContent=tissueLabel(state.tissue);
+
+  $("nitrogenFill").style.width=state.nitrogen+"%";
+  $("nitrogenFill").style.background=meterColor("nitrogen",state.nitrogen);
+  $("nitrogenText").textContent=`${Math.round(state.nitrogen)} / 100`;
+  $("nitrogenStatus").textContent=nitrogenLabel(state.nitrogen);
+
+  renderEaaGrid("eaaGrid",state.eaa);
+}
+
+function renderEaaGrid(id,eaaSet){
+  $(id).innerHTML=ALL_EAA.map(code=>{
+    const filled=eaaSet.has(code);
+    return `<div class="eaa-chip ${filled?"filled":""}" aria-label="${EAA_NAMES[code]}: ${filled?"represented":"not yet represented"}">${code}</div>`;
+  }).join("");
+}
+
+function snapshot(){
+  return {
+    protein:Math.round(state.protein),
+    eaa:state.eaa.size,
+    sparing:Math.round(state.sparing),
+    tissue:Math.round(state.tissue),
+    nitrogen:Math.round(state.nitrogen)
+  };
+}
+
+function applyDrift(sceneIndex){
+  if(driftAppliedForScene===sceneIndex) return;
+  const drift=currentScenes[sceneIndex].drift||0;
+  state.sparing=clamp(state.sparing+drift);
+  state.tissue=calculateTissue();
+  driftAppliedForScene=sceneIndex;
+}
+
+function renderScene(){
+  applyDrift(currentScene);
+  selectedChoice=null;
+  $("nextSceneBtn").disabled=true;
+  $("nextSceneBtn").classList.add("btn-disabled");
+  $("organBox").classList.remove("show");
+  $("changePanel").classList.remove("show");
+
+  const scene=currentScenes[currentScene];
+  $("sceneNumber").textContent=currentScene+1;
+  $("sceneTime").textContent=scene.time;
+  $("sceneTitle").textContent=scene.title;
+  $("scenePrompt").textContent=scene.prompt;
+  $("caseIndicatorGoal").textContent=caseIndicatorGoalText();
+  $("tissueAim").textContent=`Aim: ${tissueGoalText()}`;
+  $("progressBar").style.width=((currentScene)/currentScenes.length*100)+"%";
+
+  $("choiceGrid").innerHTML=scene.choices.map((choice,i)=>`
+    <button class="choice-card" data-index="${i}" aria-pressed="false">
+      <div class="choice-title"><span aria-hidden="true">${["◉","◆","●"][i]||"●"}</span><span>${choice.title}</span></div>
+      <div class="choice-desc">${choice.desc}</div>
+      <span class="choice-meta">Estimated protein: ${choice.protein} g</span>
+    </button>`).join("");
+
+  document.querySelectorAll(".choice-card").forEach(btn=>btn.addEventListener("click",()=>selectChoice(Number(btn.dataset.index),btn)));
+  updateDashboard();
+}
+
+function selectChoice(index,button){
+  if(selectedChoice!==null) return;
+  selectedChoice=index;
+  document.querySelectorAll(".choice-card").forEach(b=>{b.disabled=true;b.classList.remove("selected");b.setAttribute("aria-pressed","false")});
+  button.classList.add("selected");
+  button.setAttribute("aria-pressed","true");
+
+  const scene=currentScenes[currentScene];
+  const choice=scene.choices[index];
+  const before=snapshot();
+  const oldProtein=state.protein;
+
+  state.protein+=choice.protein;
+  choice.eaa.forEach(code=>state.eaa.add(code));
+  state.sparing=clamp(state.sparing+choice.sparing);
+
+  const priorExcess=Math.max(0,oldProtein-currentProfile.target);
+  const newExcess=Math.max(0,state.protein-currentProfile.target);
+  const addedExcess=Math.max(0,newExcess-priorExcess);
+  const lowEnergyUse=choice.protein*Math.max(0,45-state.sparing)/45*.22;
+  state.nitrogen=clamp(state.nitrogen+choice.nitrogen+(addedExcess*.55)+lowEnergyUse);
+  state.tissue=calculateTissue();
+
+  choice.tags.forEach(tag=>{if(Object.prototype.hasOwnProperty.call(state.counts,tag)) state.counts[tag]++});
+  const after=snapshot();
+  const impact=
+    Math.abs((after.protein-before.protein)/currentProfile.target*100)+
+    Math.abs(after.eaa-before.eaa)*11+
+    Math.abs(after.sparing-before.sparing)+
+    Math.abs(after.tissue-before.tissue)+
+    Math.abs(after.nitrogen-before.nitrogen);
+
+  state.history.push({
+    time:scene.time,event:scene.title,choice:choice.title,meta:choice.meta,
+    organ:choice.organ,message:choice.message,concept:choice.concept,
+    before,after,impact,tags:choice.tags
+  });
+
+  renderChangePanel(before,after);
+  $("organTitle").textContent=choice.organ+" Response";
+  $("organMessage").textContent=choice.message;
+  $("conceptTag").textContent=choice.concept;
+  $("organBox").classList.add("show");
+  updateDashboard();
+  $("nextSceneBtn").disabled=false;
+  $("nextSceneBtn").classList.remove("btn-disabled");
+  $("nextSceneBtn").textContent=currentScene===currentScenes.length-1?"View My Report":"Continue";
+}
+
+function indicatorClass(key,before,after){
+  if(after===before) return "change-neutral";
+  if(key==="nitrogen") return after>before?"change-watch":"change-good";
+  if(key==="tissue"){
+    const better=Math.abs(after)<Math.abs(before) || after>before;
+    return better?"change-good":"change-watch";
+  }
+  return after>before?"change-good":"change-watch";
+}
+
+function renderChangePanel(before,after){
+  const items=[
+    ["Protein","protein","g"],
+    ["EAA Coverage","eaa"," / 9"],
+    ["Protein Sparing","sparing",""],
+    ["Tissue Balance","tissue",""],
+    ["Nitrogen Load","nitrogen",""]
+  ];
+  $("changeGrid").innerHTML=items.map(([label,key,suffix])=>{
+    const delta=after[key]-before[key];
+    const cls=indicatorClass(key,before[key],after[key]);
+    return `<div class="change-card">
+      <strong>${label}</strong>
+      <div class="change-values"><span>${before[key]}${suffix}</span><span class="change-arrow">→</span><span class="${cls}">${after[key]}${suffix}</span></div>
+      <div class="small">${delta===0?"No change":`${delta>0?"+":""}${delta}${suffix}`}</div>
+    </div>`;
+  }).join("");
+  $("changePanel").classList.add("show");
+}
+
+function descriptor(key,value){
+  if(key==="protein"){
+    const pct=value/currentProfile.target*100;
+    if(pct<75) return "The day ended below the assigned planning target.";
+    if(pct<=115) return "The day ended near the assigned planning target.";
+    return "The day ended above the assigned target; excess does not enter a dedicated protein storage system.";
+  }
+  if(key==="eaa"){
+    if(value<6) return "Several essential amino acid gaps remained in the simplified daily model.";
+    if(value<9) return "Most essential amino acids were represented, but at least one gap remained.";
+    return "All nine essential amino acids were represented in the daily pattern.";
+  }
+  if(key==="sparing") return sparingLabel(value)+".";
+  if(key==="tissue") return tissueLabel(value)+".";
+  if(key==="nitrogen") return nitrogenLabel(value)+". This is not a kidney-function measure.";
+  return "";
+}
+
+function buildReport(){
+  $("reportProfile").innerHTML=profileCards(currentProfile)+`
+    <div class="profile-item"><span class="label">Simulation ID</span><span class="value">${simId}</span></div>
+    <div class="profile-item"><span class="label">Assigned Target</span><span class="value">${currentProfile.target} g</span></div>`;
+
+  const pivot=state.history.reduce((best,item)=>!best||item.impact>best.impact?item:best,null);
+  const c=state.counts;
+  const snapshotItems=[
+    ["Simulation ID",simId],
+    ["Assigned Person",`${currentProfile.name} — ${currentProfile.dietary.label}`],
+    ["Target Calculation",`${currentProfile.weightLb} lb ÷ 2.2 × ${currentProfile.demand.factor.toFixed(1)} = ${currentProfile.target} g`],
+    ["Final Protein Intake",`${Math.round(state.protein)} g (${Math.round(state.protein/currentProfile.target*100)}% of target)`],
+    ["Complete-Protein Choices",c.complete],
+    ["Complementary-Protein Choices",c.complementary],
+    ["Protein-Only Choices",c.proteinonly],
+    ["Supplement Choices",c.supplement],
+    ["Skipped/Very-Low-Protein Choices",c.skip+c.lowprotein],
+    ["High-Excess Choices",c.excess]
+  ];
+  $("instructorSnapshot").innerHTML=snapshotItems.map(([label,value])=>`<div class="score-card"><span class="label">${label}</span><span class="value">${value}</span></div>`).join("");
+
+  const pivotDiffs=[
+    `Protein: ${pivot.before.protein} g → ${pivot.after.protein} g`,
+    `Essential amino acids: ${pivot.before.eaa}/9 → ${pivot.after.eaa}/9`,
+    `Protein sparing: ${pivot.before.sparing} → ${pivot.after.sparing}`,
+    `Tissue balance: ${pivot.before.tissue>0?"+":""}${pivot.before.tissue} → ${pivot.after.tissue>0?"+":""}${pivot.after.tissue}`,
+    `Nitrogen load: ${pivot.before.nitrogen} → ${pivot.after.nitrogen}`
+  ];
+  $("proteinPivot").innerHTML=`
+    <strong>${pivot.time}: ${pivot.event}</strong><br>
+    Choice: <strong>${pivot.choice}</strong>
+    <p>${pivot.message}</p>
+    <ul>${pivotDiffs.map(x=>`<li>${x}</li>`).join("")}</ul>`;
+
+  const reportData=[
+    ["Protein Target Progress","protein",state.protein,`${Math.round(state.protein)} g / ${currentProfile.target} g`],
+    ["Essential Amino Acid Coverage","eaa",state.eaa.size,`${state.eaa.size} / 9`],
+    ["Protein-Sparing Support","sparing",state.sparing,`${Math.round(state.sparing)} / 100`],
+    ["Tissue Balance","tissue",state.tissue,`${state.tissue>0?"+":""}${Math.round(state.tissue)}`],
+    ["Nitrogen Processing Load","nitrogen",state.nitrogen,`${Math.round(state.nitrogen)} / 100`]
+  ];
+  $("reportScores").innerHTML=reportData.map(([label,key,value,display])=>`<div class="score-card"><strong>${label}: ${display}</strong><p class="small">${descriptor(key,value)}</p></div>`).join("");
+
+  renderEaaGrid("reportEaaGrid",state.eaa);
+
+  $("reportTimeline").innerHTML=state.history.map((h,i)=>`
+    <div class="timeline-item">
+      <strong>${i+1}. ${h.time} — ${h.event}</strong><br>
+      <span>${h.choice}</span><br>
+      <span class="small"><strong>${h.organ}:</strong> ${h.message}</span>
+      <div class="timeline-stats">Protein ${h.before.protein}→${h.after.protein} g | EAA ${h.before.eaa}→${h.after.eaa}/9 | Sparing ${h.before.sparing}→${h.after.sparing} | Tissue ${h.before.tissue}→${h.after.tissue} | Nitrogen ${h.before.nitrogen}→${h.after.nitrogen}</div>
+    </div>`).join("");
+}
+
+function startNewCase(){
+  currentScene=0;
+  selectedChoice=null;
+  driftAppliedForScene=-1;
+  buildProfile();
+  $("studentName").value="";
+  $("nutritionDebrief").value="";
+  $("wordCount").textContent="0 words";
+  $("wordCount").className="small";
+}
+
+$("startBtn").addEventListener("click",()=>{startNewCase();showScreen("profileScreen")});
+$("regenerateBtn").addEventListener("click",()=>{startNewCase()});
+$("beginDayBtn").addEventListener("click",()=>{
+  resetState();
+  currentScene=0;
+  driftAppliedForScene=-1;
+  renderScene();
+  showScreen("simulationScreen");
+});
+$("nextSceneBtn").addEventListener("click",()=>{
+  if(selectedChoice===null) return;
+  if(currentScene<currentScenes.length-1){
+    currentScene++;
+    renderScene();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }else{
+    $("progressBar").style.width="100%";
+    buildReport();
+    showScreen("reportScreen");
+  }
+});
+$("nutritionDebrief").addEventListener("input",e=>{
+  const text=e.target.value.trim();
+  const count=text?text.split(/\s+/).length:0;
+  $("wordCount").textContent=count+" word"+(count===1?"":"s")+(count>=150&&count<=250?" — within the recommended range":" — aim for 150–250 words");
+  $("wordCount").className=count>=150&&count<=250?"small word-ok":"small word-watch";
+});
+$("printBtn").addEventListener("click",()=>{
+  const name=$("studentName").value.trim();
+  if(!name){alert("Please enter your name before saving the report.");$("studentName").focus();return;}
+  const text=$("nutritionDebrief").value.trim();
+  const count=text?text.split(/\s+/).length:0;
+  if((count<150||count>250)&&!confirm(`Your Nutrition Debrief is ${count} words. The recommended length is 150–250 words. Save the report anyway?`)) return;
+  window.print();
+});
+$("restartBtn").addEventListener("click",()=>{startNewCase();showScreen("profileScreen")});
+</script>
+</body>
+</html>
