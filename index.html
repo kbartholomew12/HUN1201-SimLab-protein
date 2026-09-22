@@ -336,6 +336,13 @@
   textarea{min-height:190px;resize:vertical}
   input[type="text"]{min-height:46px}
 
+  /* Print-only mirror for long student responses.
+     Some browsers print only the visible portion of a textarea.
+     The mirror is ordinary flowing text, so the full answer can span pages. */
+  .print-answer{
+    display:none;
+  }
+
   .word-ok{color:#2f652c;font-weight:800}
   .word-watch{color:#8d341f;font-weight:800}
 
@@ -370,12 +377,58 @@
     header,.no-print,#welcomeScreen,#profileScreen,#simulationScreen{display:none!important}
     #reportScreen{display:block!important}
     .container{max-width:none;margin:0;padding:0}
-    .panel{box-shadow:none;border:1px solid #999;break-inside:avoid;margin:.4rem 0;padding:.75rem}
+
+    /* Allow long report sections to continue naturally onto another PDF page. */
+    .panel{
+      box-shadow:none;
+      border:1px solid #999;
+      break-inside:auto;
+      page-break-inside:auto;
+      margin:.4rem 0;
+      padding:.75rem;
+    }
+
     .report-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem}
     .profile-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:.4rem}
-    .timeline-item{break-inside:avoid}
-    textarea{border:1px solid #777;min-height:150px}
-    .print-page-break{break-before:page}
+
+    /* Keep smaller report elements together when practical. */
+    .profile-item,
+    .score-card,
+    .timeline-item,
+    .notice,
+    .eaa-panel,
+    tr{
+      break-inside:avoid;
+      page-break-inside:avoid;
+    }
+
+    /* Hide the actual textarea because browser print engines may clip
+       the student's answer to the visible scroll area. */
+    textarea.print-source{
+      display:none!important;
+    }
+
+    /* Print the complete response as ordinary flowing text. */
+    .print-answer{
+      display:block!important;
+      width:100%;
+      min-height:150px;
+      margin-top:.45rem;
+      padding:.75rem;
+      border:1px solid #777;
+      border-radius:10px;
+      background:#fff;
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+      font:inherit;
+      line-height:1.5;
+      break-inside:auto;
+      page-break-inside:auto;
+    }
+
+    #wordCount{display:none!important}
+    .print-page-break{break-before:page;page-break-before:always}
   }
 </style>
 </head>
@@ -1288,20 +1341,55 @@ $("nextSceneBtn").addEventListener("click",()=>{
     showScreen("reportScreen");
   }
 });
+function resizeTextarea(field){
+  field.style.height="auto";
+  field.style.height=Math.max(190,field.scrollHeight)+"px";
+}
+
+function preparePrintableAnswers(){
+  document.querySelectorAll("textarea").forEach((field,index)=>{
+    if(!field.id) field.id=`simlabTextarea${index+1}`;
+
+    field.classList.add("print-source");
+
+    let mirror=document.querySelector(`.print-answer[data-print-for="${field.id}"]`);
+    if(!mirror){
+      mirror=document.createElement("div");
+      mirror.className="print-answer";
+      mirror.setAttribute("data-print-for",field.id);
+      field.insertAdjacentElement("afterend",mirror);
+    }
+
+    mirror.textContent=field.value.trim()||"No response entered.";
+  });
+}
+
 $("nutritionDebrief").addEventListener("input",e=>{
   const text=e.target.value.trim();
   const count=text?text.split(/\s+/).length:0;
   $("wordCount").textContent=count+" word"+(count===1?"":"s")+(count>=150&&count<=250?" — within the recommended range":" — aim for 150–250 words");
   $("wordCount").className=count>=150&&count<=250?"small word-ok":"small word-watch";
+  resizeTextarea(e.target);
 });
+
 $("printBtn").addEventListener("click",()=>{
   const name=$("studentName").value.trim();
   if(!name){alert("Please enter your name before saving the report.");$("studentName").focus();return;}
   const text=$("nutritionDebrief").value.trim();
   const count=text?text.split(/\s+/).length:0;
   if((count<150||count>250)&&!confirm(`Your Nutrition Debrief is ${count} words. The recommended length is 150–250 words. Save the report anyway?`)) return;
+
+  resizeTextarea($("nutritionDebrief"));
+  preparePrintableAnswers();
   window.print();
 });
+
+/* Also supports Ctrl+P / browser Print. */
+window.addEventListener("beforeprint",()=>{
+  document.querySelectorAll("textarea").forEach(resizeTextarea);
+  preparePrintableAnswers();
+});
+
 $("restartBtn").addEventListener("click",()=>{startNewCase();showScreen("profileScreen")});
 </script>
 </body>
